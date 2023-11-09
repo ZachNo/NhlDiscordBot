@@ -1,6 +1,6 @@
 [package]
 name = "nhl_discord_bot"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
@@ -13,6 +13,7 @@ chrono = "0.4.23"
 chrono-tz = "0.8.1"
 cached = "0.42.0"
 config-file = "0.2.3"
+anyhow = "1.0.69"
 
 [dependencies.serenity]
 default-features = false

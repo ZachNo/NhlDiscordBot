@@ -1,3 +1,4 @@
+use anyhow::{Error, Result};
 use config_file::FromConfigFile;
 use serde::Deserialize;
 
@@ -7,6 +8,6 @@ pub struct Config {
     pub app_id: u64,
 }
 
-pub fn read_config() -> Config {
-    return Config::from_config_file("config.toml").unwrap();
+pub fn read_config() -> Result<Config> {
+    return Config::from_config_file("config.toml").map_err(Error::msg);
 }

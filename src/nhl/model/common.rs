@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct NhlTeam {
-    pub name: String,
+pub struct TranslationString {
+    pub default: String,
 }
