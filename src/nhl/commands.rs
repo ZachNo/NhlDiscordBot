@@ -66,8 +66,8 @@ pub async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
         "Shots",
         format!(
             "{}-{}",
-            match_data.home_team.hits.to_string(),
-            match_data.away_team.hits.to_string(),
+            match_data.home_team.hits.unwrap_or(0).to_string(),
+            match_data.away_team.hits.unwrap_or(0).to_string(),
         ),
         false,
     );

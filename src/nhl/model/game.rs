@@ -21,7 +21,7 @@ pub struct Team {
     pub id: u32,
     pub name: TranslationString,
     pub score: u8,
-    pub hits: u8,
+    pub hits: Option<u8>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
