@@ -20,8 +20,8 @@ pub struct Game {
 pub struct Team {
     pub id: u32,
     pub name: TranslationString,
-    pub score: u8,
-    pub hits: Option<u8>,
+    pub score: Option<u8>,
+    pub sog: Option<u8>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

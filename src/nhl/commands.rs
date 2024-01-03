@@ -57,8 +57,8 @@ pub async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
         "Score",
         format!(
             "{}-{}",
-            match_data.home_team.score.to_string(),
-            match_data.away_team.score.to_string(),
+            match_data.home_team.score.unwrap_or(0).to_string(),
+            match_data.away_team.score.unwrap_or(0).to_string(),
         ),
         false,
     );
@@ -66,8 +66,8 @@ pub async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
         "Shots",
         format!(
             "{}-{}",
-            match_data.home_team.hits.unwrap_or(0).to_string(),
-            match_data.away_team.hits.unwrap_or(0).to_string(),
+            match_data.home_team.sog.unwrap_or(0).to_string(),
+            match_data.away_team.sog.unwrap_or(0).to_string(),
         ),
         false,
     );
@@ -105,6 +105,9 @@ fn translate_match_status(game_state: String) -> String {
         "OFF" => "Finished".to_string(),
         "LIVE" => "In Progress".to_string(),
         "FUT" => "Scheduled".to_string(),
-        _ => "Unknown".to_string(),
+        _ => {
+            println!("Unknown game state: {game_state}");
+            "Unknown".to_string()
+        },
     }
 }
