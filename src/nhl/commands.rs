@@ -104,6 +104,7 @@ fn translate_match_status(game_state: String) -> String {
     match game_state.as_str() {
         "OFF" => "Finished".to_string(),
         "LIVE" => "In Progress".to_string(),
+        "PRE" => "Pre-game".to_string(),
         "FUT" => "Scheduled".to_string(),
         _ => {
             println!("Unknown game state: {game_state}");
