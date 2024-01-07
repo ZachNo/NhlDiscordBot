@@ -103,6 +103,7 @@ pub async fn get_score_refresh_button(match_id: u64) -> CreateComponents {
 fn translate_match_status(game_state: String) -> String {
     match game_state.as_str() {
         "OFF" => "Finished".to_string(),
+        "FINAL" => "Finished".to_string(),
         "LIVE" => "In Progress".to_string(),
         "PRE" => "Pre-game".to_string(),
         "FUT" => "Scheduled".to_string(),
