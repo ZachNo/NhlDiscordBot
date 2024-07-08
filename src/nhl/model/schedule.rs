@@ -1,5 +1,5 @@
 use crate::nhl::model::common::TranslationString;
-use anyhow::{Error, Result};
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -34,5 +34,5 @@ pub struct Team {
 }
 
 pub fn parse_schedule_data(data: &str) -> Result<Schedule> {
-    return serde_json::from_str(data).map_err(Error::msg);
+    serde_json::from_str(data).context("parse schedule data")
 }

@@ -2,26 +2,25 @@ use crate::nhl::fetch_data::{fetch_match_score, fetch_schedule};
 use anyhow::Result;
 use chrono::{DateTime, Utc};
 use serenity::{
-    builder::{CreateActionRow, CreateButton, CreateComponents, CreateEmbed},
-    model::application::component::ButtonStyle::Secondary,
-    utils::Colour,
+    builder::{CreateActionRow, CreateButton, CreateEmbed},
+    model::{application::ButtonStyle::Secondary, Colour},
 };
 
 pub async fn pull_todays_schedule() -> Result<CreateEmbed> {
     let schedule = fetch_schedule().await?;
     if schedule.games.is_empty() {
-        let mut embed: CreateEmbed = CreateEmbed::default();
-        embed.color(Colour::from_rgb(240, 200, 0));
-        embed.title("There's no games scheduled for today. :c");
+        let embed: CreateEmbed = CreateEmbed::default()
+            .color(Colour::from_rgb(240, 200, 0))
+            .title("There's no games scheduled for today. :c");
         return Ok(embed);
     }
 
-    let mut embed: CreateEmbed = CreateEmbed::default();
-    embed.color(Colour::from_rgb(240, 200, 0));
-    embed.title(format!("NHL Games for {}", &schedule.date));
+    let mut embed: CreateEmbed = CreateEmbed::default()
+        .color(Colour::from_rgb(240, 200, 0))
+        .title(format!("NHL Games for {}", &schedule.date));
     for game in &schedule.games {
         let datetime = DateTime::parse_from_rfc3339(game.start_time_u_t_c.as_str())?;
-        embed.field(
+        embed = embed.field(
             format!(
                 "{} vs. {}",
                 game.home_team.place_name.default, game.away_team.place_name.default
@@ -29,8 +28,8 @@ pub async fn pull_todays_schedule() -> Result<CreateEmbed> {
             format!(
                 "At {} @ <t:{}:t>\n{}",
                 game.venue.default,
-                datetime.timestamp().to_string(),
-                translate_match_status(game.game_state.to_string()),
+                datetime.timestamp(),
+                translate_match_status(&game.game_state),
             ),
             true,
         );
@@ -41,75 +40,70 @@ pub async fn pull_todays_schedule() -> Result<CreateEmbed> {
 
 pub async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
     let match_data = fetch_match_score(match_id).await?;
+    let mut embed: CreateEmbed = CreateEmbed::default()
+        .color(Colour::from_rgb(240, 200, 0))
+        .title(format!(
+            "{} vs. {}",
+            match_data.home_team.name.default, match_data.away_team.name.default
+        ))
+        .field(
+            "Status",
+            translate_match_status(&match_data.game_state),
+            false,
+        )
+        .field(
+            "Score",
+            format!(
+                "{}-{}",
+                match_data.home_team.score.unwrap_or(0),
+                match_data.away_team.score.unwrap_or(0),
+            ),
+            false,
+        )
+        .field(
+            "Shots",
+            format!(
+                "{}-{}",
+                match_data.home_team.sog.unwrap_or(0),
+                match_data.away_team.sog.unwrap_or(0),
+            ),
+            false,
+        );
 
-    let mut embed: CreateEmbed = CreateEmbed::default();
-    embed.color(Colour::from_rgb(240, 200, 0));
-    embed.title(format!(
-        "{} vs. {}",
-        match_data.home_team.name.default, match_data.away_team.name.default
-    ));
-    embed.field(
-        "Status",
-        translate_match_status(match_data.game_state.to_string()),
-        false,
-    );
-    embed.field(
-        "Score",
-        format!(
-            "{}-{}",
-            match_data.home_team.score.unwrap_or(0).to_string(),
-            match_data.away_team.score.unwrap_or(0).to_string(),
-        ),
-        false,
-    );
-    embed.field(
-        "Shots",
-        format!(
-            "{}-{}",
-            match_data.home_team.sog.unwrap_or(0).to_string(),
-            match_data.away_team.sog.unwrap_or(0).to_string(),
-        ),
-        false,
-    );
-    embed.field(
-        format!("{} Period", match_data.period),
-        format!("Time left: {}", match_data.clock.time_remaining),
-        false,
-    );
-    embed.field(
+    if match_data.period.is_some() {
+        embed = embed.field(
+            format!("{} Period", match_data.period.unwrap()),
+            format!("Time left: {}", match_data.clock.time_remaining),
+            false,
+        );
+    }
+
+    embed = embed.field(
         "-",
-        format!(
-            "Last refreshed <t:{}:R>",
-            Utc::now().timestamp().to_string()
-        ),
+        format!("Last refreshed <t:{}:R>", Utc::now().timestamp()),
         false,
     );
 
     Ok(embed)
 }
 
-pub async fn get_score_refresh_button(match_id: u64) -> CreateComponents {
-    let mut button = CreateButton::default();
-    button.label("Refresh");
-    button.style(Secondary);
-    button.custom_id(format!("score_{}", match_id.to_string()));
-    let mut action_row: CreateActionRow = CreateActionRow::default();
-    action_row.add_button(button);
-    let mut components = CreateComponents::default();
-    components.add_action_row(action_row);
-    components
+pub async fn get_score_refresh_button(match_id: u64) -> CreateActionRow {
+    let button = CreateButton::new(format!("slapshot_score_{match_id}"))
+        .label("Refresh")
+        .style(Secondary);
+    CreateActionRow::Buttons(vec![button])
 }
 
-fn translate_match_status(game_state: String) -> String {
+fn translate_match_status<'a>(game_state: &String) -> &'a str {
     match game_state.as_str() {
-        "OFF" => "Finished".to_string(),
-        "FINAL" => "Finished".to_string(),
-        "LIVE" => "In Progress".to_string(),
-        "PRE" => "Pre-game".to_string(),
-        "FUT" => "Scheduled".to_string(),
+        "OFF" => "Finished",
+        "FINAL" => "Finished",
+        "LIVE" => "In Progress",
+        "PRE" => "Pre-game",
+        "FUT" => "Scheduled",
         _ => {
             println!("Unknown game state: {game_state}");
-            "Unknown".to_string()
-        },
+            "Unknown"
+        }
     }
 }

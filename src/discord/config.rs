@@ -1,4 +1,4 @@
-use anyhow::{Error, Result};
+use anyhow::{Context, Result};
 use config_file::FromConfigFile;
 use serde::Deserialize;
 
@@ -9,5 +9,5 @@ pub struct Config {
 }
 
 pub fn read_config() -> Result<Config> {
-    return Config::from_config_file("config.toml").map_err(Error::msg);
+    Config::from_config_file("config.toml").context("config read")
 }
