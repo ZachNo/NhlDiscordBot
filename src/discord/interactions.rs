@@ -144,7 +144,7 @@ pub async fn message_component_interaction(
     message_opt: Option<&ComponentInteraction>,
 ) {
     if let Some(message) = message_opt {
-        let match_id_str = match message.data.custom_id.strip_prefix("slapshot_score_") {
+        let match_id_str = match message.data.custom_id.strip_prefix("score_") {
             Some(s) => s,
             None => {
                 println!("Error: weird message id update: {}", message.data.custom_id);

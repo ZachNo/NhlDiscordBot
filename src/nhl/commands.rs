@@ -88,7 +88,7 @@ pub async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
 }
 
 pub async fn get_score_refresh_button(match_id: u64) -> CreateActionRow {
-    let button = CreateButton::new(format!("slapshot_score_{match_id}"))
+    let button = CreateButton::new(format!("score_{match_id}"))
         .label("Refresh")
         .style(Secondary);
     CreateActionRow::Buttons(vec![button])
