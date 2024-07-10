@@ -31,6 +31,7 @@ pub struct Game {
 pub struct Team {
     pub id: u32,
     pub place_name: TranslationString,
+    pub score: Option<u8>,
 }
 
 pub fn parse_schedule_data(data: &str) -> Result<Schedule> {

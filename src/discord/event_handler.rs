@@ -1,6 +1,9 @@
-use serenity::all::{async_trait, Context, EventHandler, Interaction, InteractionType, Ready};
+use serenity::all::{
+    async_trait, Command, Context, EventHandler, Interaction, InteractionType, Ready,
+};
+use strum::IntoEnumIterator;
 
-use crate::discord::commands::application_commands;
+use crate::discord::commands::DiscordCommand;
 use crate::discord::interactions::{
     application_command_interaction, autocomplete_interaction, message_component_interaction,
 };
@@ -12,7 +15,12 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("{} is connected!", ready.user.name);
         println!("Total servers in: {}", ready.guilds.len());
-        application_commands(ctx.http).await.unwrap();
+        for command_enum in DiscordCommand::iter() {
+            let create_command = command_enum.into_command().create_command();
+            Command::create_global_command(&ctx.http, create_command)
+                .await
+                .unwrap();
+        }
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {

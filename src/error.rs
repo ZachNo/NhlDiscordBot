@@ -11,6 +11,8 @@ pub enum DiscordError {
     NoMatchFound(String),
     #[error("Error getting data from the NHL")]
     NhlServerError(String),
+    #[error("No command found for {0}")]
+    InvalidCommand(String),
 }
 
 pub fn error_to_error_message(err: AnyhowError) -> String {
