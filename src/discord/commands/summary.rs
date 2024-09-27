@@ -1,8 +1,10 @@
 use anyhow::Result;
-use serenity::all::{async_trait, Colour, CommandInteraction, CreateActionRow, CreateCommand, CreateEmbed};
+use serenity::all::{
+    async_trait, Colour, CommandInteraction, CreateActionRow, CreateCommand, CreateEmbed,
+};
 
 use crate::discord::commands::DiscordCommandTrait;
-use crate::nhl::fetch_data::fetch_yesterday_schedule;
+use crate::nhl::fetch_data::{fetch_team_name, fetch_yesterday_schedule};
 use crate::nhl::model::schedule::Day;
 
 pub const NAME: &str = "summary";
@@ -40,11 +42,10 @@ async fn format_summary(schedule: Day) -> Result<CreateEmbed> {
         .color(Colour::from_rgb(240, 200, 0))
         .title(format!("NHL Games Summary for {}", &schedule.date));
     for game in &schedule.games {
+        let away_team_name = fetch_team_name(game.away_team.id).await?;
+        let home_team_name = fetch_team_name(game.home_team.id).await?;
         embed = embed.field(
-            format!(
-                "{} vs. {}",
-                game.home_team.place_name.default, game.away_team.place_name.default
-            ),
+            format!("{} vs. {}", home_team_name, away_team_name),
             format!(
                 "Final score: {}-{}",
                 game.home_team.score.unwrap_or(0),

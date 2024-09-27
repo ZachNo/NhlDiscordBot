@@ -6,7 +6,7 @@ use serenity::all::{
 };
 
 use crate::discord::commands::DiscordCommandTrait;
-use crate::nhl::fetch_data::{fetch_today_schedule, fetch_tomorrow_schedule};
+use crate::nhl::fetch_data::{fetch_team_name, fetch_today_schedule, fetch_tomorrow_schedule};
 use crate::nhl::model::schedule::Day;
 use crate::nhl::utils::translate_match_status;
 
@@ -70,16 +70,23 @@ async fn format_schedule(schedule: Day) -> Result<CreateEmbed> {
         .title(format!("NHL Games for {}", &schedule.date));
     for game in &schedule.games {
         let datetime = DateTime::parse_from_rfc3339(game.start_time_u_t_c.as_str())?;
+        let away_team_name = fetch_team_name(game.away_team.id).await?;
+        let home_team_name = fetch_team_name(game.home_team.id).await?;
         embed = embed.field(
+            format!("{} vs. {}", home_team_name, away_team_name),
             format!(
-                "{} vs. {}",
-                game.home_team.place_name.default, game.away_team.place_name.default
-            ),
-            format!(
-                "At {} @ <t:{}:t>\n{}",
+                "At {} @ <t:{}:t>\n{}{}",
                 game.venue.default,
                 datetime.timestamp(),
                 translate_match_status(&game.game_state),
+                if game.special_event.is_some() {
+                    format!(
+                        "\nSpecial Event: {}",
+                        game.special_event.clone().unwrap().default
+                    )
+                } else {
+                    "".to_string()
+                }
             ),
             true,
         );

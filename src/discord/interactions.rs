@@ -4,8 +4,8 @@ use serenity::all::{
 };
 
 use crate::discord::commands::DiscordCommand;
-use crate::error::DiscordError::InvalidCommand;
 use crate::error::error_to_error_message;
+use crate::error::DiscordError::InvalidCommand;
 
 pub async fn application_command_interaction(
     ctx: &Context,
@@ -21,14 +21,17 @@ pub async fn application_command_interaction(
                         CreateInteractionResponse::Message(
                             CreateInteractionResponseMessage::new()
                                 .ephemeral(true)
-                                .content(error_to_error_message(InvalidCommand(command.data.name.clone()).into())),
+                                .content(error_to_error_message(
+                                    InvalidCommand(command.data.name.clone()).into(),
+                                )),
                         ),
                     )
                     .await
                     .unwrap();
                 return;
             }
-        }.into_command();
+        }
+        .into_command();
         let (embed, components) = match discord_command.handle_command(command).await {
             Ok((e, c)) => (e, c),
             Err(e) => {
@@ -75,14 +78,17 @@ pub async fn autocomplete_interaction(
                         CreateInteractionResponse::Message(
                             CreateInteractionResponseMessage::new()
                                 .ephemeral(true)
-                                .content(error_to_error_message(InvalidCommand(autocomplete.data.name.clone()).into())),
+                                .content(error_to_error_message(
+                                    InvalidCommand(autocomplete.data.name.clone()).into(),
+                                )),
                         ),
                     )
                     .await
                     .unwrap();
                 return;
             }
-        }.into_command();
+        }
+        .into_command();
         let response_options = match discord_command.handle_autocomplete(autocomplete).await {
             Ok(r) => r,
             Err(e) => {
@@ -126,14 +132,17 @@ pub async fn message_component_interaction(
                         CreateInteractionResponse::Message(
                             CreateInteractionResponseMessage::new()
                                 .ephemeral(true)
-                                .content(error_to_error_message(InvalidCommand(command_str.to_string()).into())),
+                                .content(error_to_error_message(
+                                    InvalidCommand(command_str.to_string()).into(),
+                                )),
                         ),
                     )
                     .await
                     .unwrap();
                 return;
             }
-        }.into_command();
+        }
+        .into_command();
         let (embed, components) = match discord_command.handle_interaction(message).await {
             Ok((e, c)) => (e, c),
             Err(e) => {

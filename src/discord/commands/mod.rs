@@ -21,7 +21,7 @@ impl DiscordCommand {
         match self {
             DiscordCommand::Schedule => Box::new(schedule::Schedule {}),
             DiscordCommand::Score => Box::new(score::Score {}),
-            DiscordCommand::Summary => Box::new(summary::Summary{}),
+            DiscordCommand::Summary => Box::new(summary::Summary {}),
         }
     }
 }

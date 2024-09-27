@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use cached::{proc_macro::cached, stores::TimedCache};
+use cached::proc_macro::cached;
 use chrono::Utc;
 use serenity::all::{
     async_trait, ButtonStyle::Secondary, Colour, CommandData, CommandInteraction,
@@ -9,7 +9,7 @@ use serenity::all::{
 
 use crate::discord::commands::common::DiscordCommandTrait;
 use crate::error::DiscordError::{NoMatchFound, NoValueProvided};
-use crate::nhl::fetch_data::{fetch_match_score, fetch_today_schedule};
+use crate::nhl::fetch_data::{fetch_match_score, fetch_team_name, fetch_today_schedule};
 use crate::nhl::utils::translate_match_status;
 
 pub const NAME: &str = "score";
@@ -82,19 +82,14 @@ async fn populate_match_autocomplete(user_input: String) -> Result<Vec<(String, 
     Ok(user_matches)
 }
 
-#[cached(
-    ty = "TimedCache<(), Vec<(String, u64)>>",
-    create = "{ TimedCache::with_lifespan(3600) }",
-    result = true
-)]
+#[cached(time = 3600, result = true)]
 async fn populate_matches() -> Result<Vec<(String, u64)>> {
     let schedule = fetch_today_schedule().await?;
     let mut matches = Vec::new();
     for game in &schedule.games {
-        let title = format!(
-            "{} vs. {}",
-            game.home_team.place_name.default, game.away_team.place_name.default
-        );
+        let away_team_name = fetch_team_name(game.away_team.id).await?;
+        let home_team_name = fetch_team_name(game.home_team.id).await?;
+        let title = format!("{} vs. {}", home_team_name, away_team_name);
         matches.push((title, game.id));
     }
     Ok(matches)
@@ -102,12 +97,11 @@ async fn populate_matches() -> Result<Vec<(String, u64)>> {
 
 async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
     let match_data = fetch_match_score(match_id).await?;
+    let away_team_name = fetch_team_name(match_data.away_team.id).await?;
+    let home_team_name = fetch_team_name(match_data.home_team.id).await?;
     let mut embed: CreateEmbed = CreateEmbed::default()
         .color(Colour::from_rgb(240, 200, 0))
-        .title(format!(
-            "{} vs. {}",
-            match_data.home_team.name.default, match_data.away_team.name.default
-        ))
+        .title(format!("{} vs. {}", home_team_name, away_team_name))
         .field(
             "Status",
             translate_match_status(&match_data.game_state),
@@ -132,10 +126,10 @@ async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
             false,
         );
 
-    if match_data.period.is_some() {
+    if match_data.period.is_some() && match_data.clock.is_some() {
         embed = embed.field(
             format!("Period {}", match_data.period.unwrap()),
-            format!("Time left: {}", match_data.clock.time_remaining),
+            format!("Time left: {}", match_data.clock.unwrap().time_remaining),
             false,
         );
     }

@@ -13,7 +13,7 @@ pub struct Game {
     pub period: Option<u8>,
     pub away_team: Team,
     pub home_team: Team,
-    pub clock: Clock,
+    pub clock: Option<Clock>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

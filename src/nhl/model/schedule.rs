@@ -24,6 +24,7 @@ pub struct Game {
     pub game_state: String,
     pub away_team: Team,
     pub home_team: Team,
+    pub special_event: Option<TranslationString>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
