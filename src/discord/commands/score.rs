@@ -1,5 +1,4 @@
 use anyhow::{anyhow, Result};
-use cached::proc_macro::cached;
 use chrono::Utc;
 use serenity::all::{
     async_trait, ButtonStyle::Secondary, Colour, CommandData, CommandInteraction,
@@ -82,7 +81,6 @@ async fn populate_match_autocomplete(user_input: String) -> Result<Vec<(String, 
     Ok(user_matches)
 }
 
-#[cached(time = 3600, result = true)]
 async fn populate_matches() -> Result<Vec<(String, u64)>> {
     let schedule = fetch_today_schedule().await?;
     let mut matches = Vec::new();

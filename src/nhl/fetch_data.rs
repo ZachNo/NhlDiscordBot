@@ -1,6 +1,7 @@
 use crate::error::DiscordError::NhlServerError;
-use anyhow::Result;
-use cached::proc_macro::cached;
+use anyhow::{anyhow, Result};
+use cached::proc_macro::io_cached;
+use cached::stores::{AsyncRedisCache, AsyncRedisCacheBuilder};
 use chrono::{Local, TimeDelta};
 use std::ops::Add;
 
@@ -11,13 +12,12 @@ use crate::nhl::model::{
 };
 
 const BASE_URL: &str = "https://api-web.nhle.com/v1";
+const REDIS: &str = "redis://127.0.0.1:6379";
 
-#[cached(time = 3600, result = true)]
 pub async fn fetch_today_schedule() -> Result<Day> {
     fetch_schedule(Local::now().format("%Y-%m-%d").to_string()).await
 }
 
-#[cached(time = 3600, result = true)]
 pub async fn fetch_tomorrow_schedule() -> Result<Day> {
     fetch_schedule(
         Local::now()
@@ -28,7 +28,6 @@ pub async fn fetch_tomorrow_schedule() -> Result<Day> {
     .await
 }
 
-#[cached(time = 3600, result = true)]
 pub async fn fetch_yesterday_schedule() -> Result<Day> {
     fetch_schedule(
         Local::now()
@@ -39,6 +38,18 @@ pub async fn fetch_yesterday_schedule() -> Result<Day> {
     .await
 }
 
+#[io_cached(
+    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
+    ty = "AsyncRedisCache<String, Day>",
+    create = r##" {
+        AsyncRedisCacheBuilder::new("schedule", 3600)
+            .set_connection_string(REDIS)
+            .set_refresh(true)
+            .build()
+            .await
+            .expect("error building redis cache")
+    } "##
+)]
 async fn fetch_schedule(day: String) -> Result<Day> {
     let data = reqwest::get(format!("{BASE_URL}/schedule/{day}"))
         .await
@@ -50,7 +61,17 @@ async fn fetch_schedule(day: String) -> Result<Day> {
     Ok(schedule?.game_week[0].clone())
 }
 
-#[cached(time = 5, result = true)]
+#[io_cached(
+    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
+    ty = "AsyncRedisCache<u64, Game>",
+    create = r##" {
+        AsyncRedisCacheBuilder::new("match", 5)
+            .set_connection_string(REDIS)
+            .build()
+            .await
+            .expect("error building redis cache")
+    } "##
+)]
 pub async fn fetch_match_score(match_id: u64) -> Result<Game> {
     let body: String = reqwest::get(format!("{BASE_URL}/gamecenter/{match_id}/boxscore"))
         .await
@@ -61,7 +82,18 @@ pub async fn fetch_match_score(match_id: u64) -> Result<Game> {
     parse_game_data(body.as_str())
 }
 
-#[cached(size = 100, result = true)]
+#[io_cached(
+    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
+    ty = "AsyncRedisCache<u32, String>",
+    create = r##" {
+        AsyncRedisCacheBuilder::new("team", 86400)
+            .set_connection_string(REDIS)
+            .set_refresh(true)
+            .build()
+            .await
+            .expect("error building redis cache")
+    } "##
+)]
 pub async fn fetch_team_name(team_id: u32) -> Result<String> {
     let body: String = reqwest::get(format!("{BASE_URL}/meta?teams={team_id}"))
         .await

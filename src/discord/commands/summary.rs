@@ -1,4 +1,5 @@
 use anyhow::Result;
+use futures::future::join_all;
 use serenity::all::{
     async_trait, Colour, CommandInteraction, CreateActionRow, CreateCommand, CreateEmbed,
 };
@@ -37,6 +38,18 @@ async fn format_summary(schedule: Day) -> Result<CreateEmbed> {
             .description("There were no games. :c");
         return Ok(embed);
     }
+
+    // Make sure all teams are cached
+    // Fetch each team in parallel, and wait for all done
+    let mut handles = vec![];
+    schedule
+        .games
+        .iter()
+        .for_each(|g| {
+            handles.push(fetch_team_name(g.away_team.id));
+            handles.push(fetch_team_name(g.home_team.id));
+        });
+    join_all(handles).await;
 
     let mut embed: CreateEmbed = CreateEmbed::default()
         .color(Colour::from_rgb(240, 200, 0))
