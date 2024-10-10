@@ -10,7 +10,7 @@ pub struct Game {
     pub venue: TranslationString,
     pub start_time_u_t_c: String,
     pub game_state: String,
-    pub period: Option<u8>,
+    pub period_descriptor: Option<Period>,
     pub away_team: Team,
     pub home_team: Team,
     pub clock: Option<Clock>,
@@ -22,6 +22,12 @@ pub struct Team {
     pub name: TranslationString,
     pub score: Option<u8>,
     pub sog: Option<u8>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Period {
+    pub number: u8,
 }
 
 #[derive(Clone, Serialize, Deserialize)]

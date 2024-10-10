@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use chrono::Utc;
+use futures::future::join_all;
 use serenity::all::{
     async_trait, ButtonStyle::Secondary, Colour, CommandData, CommandInteraction,
     CommandOptionType, ComponentInteraction, CreateActionRow, CreateAutocompleteResponse,
@@ -83,6 +84,19 @@ async fn populate_match_autocomplete(user_input: String) -> Result<Vec<(String, 
 
 async fn populate_matches() -> Result<Vec<(String, u64)>> {
     let schedule = fetch_today_schedule().await?;
+
+    // Make sure all teams are cached
+    // Fetch each team in parallel, and wait for all done
+    let mut handles = vec![];
+    schedule
+        .games
+        .iter()
+        .for_each(|g| {
+            handles.push(fetch_team_name(g.away_team.id));
+            handles.push(fetch_team_name(g.home_team.id));
+        });
+    join_all(handles).await;
+
     let mut matches = Vec::new();
     for game in &schedule.games {
         let away_team_name = fetch_team_name(game.away_team.id).await?;
@@ -124,9 +138,9 @@ async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
             false,
         );
 
-    if match_data.period.is_some() && match_data.clock.is_some() {
+    if match_data.period_descriptor.is_some() && match_data.clock.is_some() {
         embed = embed.field(
-            format!("Period {}", match_data.period.unwrap()),
+            format!("Period {}", match_data.period_descriptor.unwrap().number),
             format!("Time left: {}", match_data.clock.unwrap().time_remaining),
             false,
         );
