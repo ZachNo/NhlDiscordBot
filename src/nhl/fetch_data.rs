@@ -5,7 +5,6 @@ use cached::stores::{AsyncRedisCache, AsyncRedisCacheBuilder};
 use chrono::{Local, TimeDelta};
 use std::ops::Add;
 
-use crate::nhl::model::meta::parse_meta;
 use crate::nhl::model::{
     game::{parse_game_data, Game},
     schedule::{parse_schedule_data, Day},
@@ -80,26 +79,4 @@ pub async fn fetch_match_score(match_id: u64) -> Result<Game> {
         .await
         .map_err(|e| NhlServerError(e.to_string()))?;
     parse_game_data(body.as_str())
-}
-
-#[io_cached(
-    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
-    ty = "AsyncRedisCache<u32, String>",
-    create = r##" {
-        AsyncRedisCacheBuilder::new("team", 86400)
-            .set_connection_string(REDIS)
-            .set_refresh(true)
-            .build()
-            .await
-            .expect("error building redis cache")
-    } "##
-)]
-pub async fn fetch_team_name(team_id: u32) -> Result<String> {
-    let body: String = reqwest::get(format!("{BASE_URL}/meta?teams={team_id}"))
-        .await
-        .map_err(|e| NhlServerError(e.to_string()))?
-        .text()
-        .await
-        .map_err(|e| NhlServerError(e.to_string()))?;
-    parse_meta(body.as_str()).map(|t| t.teams[0].name.default.clone())
 }

@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Result};
 use chrono::Utc;
-use futures::future::join_all;
 use serenity::all::{
     async_trait, ButtonStyle::Secondary, Colour, CommandData, CommandInteraction,
     CommandOptionType, ComponentInteraction, CreateActionRow, CreateAutocompleteResponse,
@@ -9,7 +8,7 @@ use serenity::all::{
 
 use crate::discord::commands::common::DiscordCommandTrait;
 use crate::error::DiscordError::{NoMatchFound, NoValueProvided};
-use crate::nhl::fetch_data::{fetch_match_score, fetch_team_name, fetch_today_schedule};
+use crate::nhl::fetch_data::{fetch_match_score, fetch_today_schedule};
 use crate::nhl::utils::translate_match_status;
 
 pub const NAME: &str = "score";
@@ -85,22 +84,10 @@ async fn populate_match_autocomplete(user_input: String) -> Result<Vec<(String, 
 async fn populate_matches() -> Result<Vec<(String, u64)>> {
     let schedule = fetch_today_schedule().await?;
 
-    // Make sure all teams are cached
-    // Fetch each team in parallel, and wait for all done
-    let mut handles = vec![];
-    schedule
-        .games
-        .iter()
-        .for_each(|g| {
-            handles.push(fetch_team_name(g.away_team.id));
-            handles.push(fetch_team_name(g.home_team.id));
-        });
-    join_all(handles).await;
-
     let mut matches = Vec::new();
     for game in &schedule.games {
-        let away_team_name = fetch_team_name(game.away_team.id).await?;
-        let home_team_name = fetch_team_name(game.home_team.id).await?;
+        let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
+        let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
         let title = format!("{} vs. {}", home_team_name, away_team_name);
         matches.push((title, game.id));
     }
@@ -108,23 +95,23 @@ async fn populate_matches() -> Result<Vec<(String, u64)>> {
 }
 
 async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
-    let match_data = fetch_match_score(match_id).await?;
-    let away_team_name = fetch_team_name(match_data.away_team.id).await?;
-    let home_team_name = fetch_team_name(match_data.home_team.id).await?;
+    let game = fetch_match_score(match_id).await?;
+    let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
+    let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
     let mut embed: CreateEmbed = CreateEmbed::default()
         .color(Colour::from_rgb(240, 200, 0))
         .title(format!("{} vs. {}", home_team_name, away_team_name))
         .field(
             "Status",
-            translate_match_status(&match_data.game_state),
+            translate_match_status(&game.game_state),
             false,
         )
         .field(
             "Score",
             format!(
                 "{}-{}",
-                match_data.home_team.score.unwrap_or(0),
-                match_data.away_team.score.unwrap_or(0),
+                game.home_team.score.unwrap_or(0),
+                game.away_team.score.unwrap_or(0),
             ),
             false,
         )
@@ -132,16 +119,16 @@ async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
             "Shots",
             format!(
                 "{}-{}",
-                match_data.home_team.sog.unwrap_or(0),
-                match_data.away_team.sog.unwrap_or(0),
+                game.home_team.sog.unwrap_or(0),
+                game.away_team.sog.unwrap_or(0),
             ),
             false,
         );
 
-    if match_data.period_descriptor.is_some() && match_data.clock.is_some() {
+    if game.period_descriptor.is_some() && game.clock.is_some() {
         embed = embed.field(
-            format!("Period {}", match_data.period_descriptor.unwrap().number),
-            format!("Time left: {}", match_data.clock.unwrap().time_remaining),
+            format!("Period {}", game.period_descriptor.unwrap().number),
+            format!("Time left: {}", game.clock.unwrap().time_remaining),
             false,
         );
     }

@@ -1,4 +1,4 @@
-use crate::nhl::model::common::TranslationString;
+use crate::nhl::model::common::{Team, TranslationString};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
@@ -25,14 +25,6 @@ pub struct Game {
     pub away_team: Team,
     pub home_team: Team,
     pub special_event: Option<TranslationString>,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Team {
-    pub id: u32,
-    pub place_name: TranslationString,
-    pub score: Option<u8>,
 }
 
 pub fn parse_schedule_data(data: &str) -> Result<Schedule> {

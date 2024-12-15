@@ -1,13 +1,12 @@
 use anyhow::Result;
 use chrono::DateTime;
-use futures::future::join_all;
 use serenity::all::{
     async_trait, Colour, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
     CreateCommandOption, CreateEmbed,
 };
 
 use crate::discord::commands::DiscordCommandTrait;
-use crate::nhl::fetch_data::{fetch_team_name, fetch_today_schedule, fetch_tomorrow_schedule};
+use crate::nhl::fetch_data::{fetch_today_schedule, fetch_tomorrow_schedule};
 use crate::nhl::model::schedule::Day;
 use crate::nhl::utils::translate_match_status;
 
@@ -70,22 +69,10 @@ async fn format_schedule(schedule: Day) -> Result<CreateEmbed> {
         .color(Colour::from_rgb(240, 200, 0))
         .title(format!("NHL Games for {}", &schedule.date));
 
-    // Make sure all teams are cached
-    // Fetch each team in parallel, and wait for all done
-    let mut handles = vec![];
-    schedule
-        .games
-        .iter()
-        .for_each(|g| {
-            handles.push(fetch_team_name(g.away_team.id));
-            handles.push(fetch_team_name(g.home_team.id));
-        });
-    join_all(handles).await;
-
     for game in &schedule.games {
         let datetime = DateTime::parse_from_rfc3339(game.start_time_u_t_c.as_str())?;
-        let away_team_name = fetch_team_name(game.away_team.id).await?;
-        let home_team_name = fetch_team_name(game.home_team.id).await?;
+        let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
+        let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
         embed = embed.field(
             format!("{} vs. {}", home_team_name, away_team_name),
             format!(

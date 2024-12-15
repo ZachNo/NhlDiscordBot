@@ -1,4 +1,4 @@
-use crate::nhl::model::common::TranslationString;
+use crate::nhl::model::common::{Team, TranslationString};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 
@@ -14,14 +14,6 @@ pub struct Game {
     pub away_team: Team,
     pub home_team: Team,
     pub clock: Option<Clock>,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct Team {
-    pub id: u32,
-    pub name: TranslationString,
-    pub score: Option<u8>,
-    pub sog: Option<u8>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
