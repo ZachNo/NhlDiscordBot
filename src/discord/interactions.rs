@@ -1,7 +1,4 @@
-use serenity::all::{
-    CommandInteraction, ComponentInteraction, Context, CreateInteractionResponse,
-    CreateInteractionResponseMessage,
-};
+use serenity::all::{CommandInteraction, ComponentInteraction, Context, CreateAutocompleteResponse, CreateInteractionResponse, CreateInteractionResponseMessage};
 
 use crate::discord::commands::DiscordCommand;
 use crate::error::error_to_error_message;
@@ -92,18 +89,8 @@ pub async fn autocomplete_interaction(
         let response_options = match discord_command.handle_autocomplete(autocomplete).await {
             Ok(r) => r,
             Err(e) => {
-                autocomplete
-                    .create_response(
-                        &ctx.http,
-                        CreateInteractionResponse::Message(
-                            CreateInteractionResponseMessage::new()
-                                .ephemeral(true)
-                                .content(error_to_error_message(e)),
-                        ),
-                    )
-                    .await
-                    .unwrap();
-                return;
+                error_to_error_message(e);
+                CreateAutocompleteResponse::new()
             }
         };
 

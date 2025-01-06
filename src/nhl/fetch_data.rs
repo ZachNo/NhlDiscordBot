@@ -1,5 +1,5 @@
 use crate::error::DiscordError::NhlServerError;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use cached::proc_macro::io_cached;
 use cached::stores::{AsyncRedisCache, AsyncRedisCacheBuilder};
 use chrono::{Local, TimeDelta};
@@ -56,8 +56,8 @@ async fn fetch_schedule(day: String) -> Result<Day> {
         .text()
         .await
         .map_err(|e| NhlServerError(e.to_string()))?;
-    let schedule = parse_schedule_data(data.as_str());
-    Ok(schedule?.game_week[0].clone())
+    let schedule = parse_schedule_data(data.as_str()).with_context(|| format!("{day}"))?;
+    Ok(schedule.game_week[0].clone())
 }
 
 #[io_cached(

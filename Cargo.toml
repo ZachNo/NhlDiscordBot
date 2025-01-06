@@ -1,20 +1,20 @@
 [package]
 name = "nhl_discord_bot"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.69"
-cached = { version = "0.52.0", features = ["redis_async_std"] }
-chrono = "0.4.23"
-chrono-tz = "0.9.0"
+anyhow = "1.0.95"
+cached = { version = "0.54.0", features = ["redis_async_std"] }
+chrono = "0.4.39"
+chrono-tz = "0.10.0"
 config-file = "0.2.3"
-futures = "0.3.26"
-lazy_static = "1.4.0"
-reqwest = "0.12.5"
-serde = "1.0.154"
-serde_json = "1.0.94"
-serenity = "0.12.2"
+futures = "0.3.31"
+lazy_static = "1.5.0"
+reqwest = "0.12.12"
+serde = "1.0.217"
+serde_json = "1.0.134"
+serenity = "0.12.4"
 strum = { version = "0.26.3", features = ["derive"] }
-thiserror = "1.0.61"
-tokio = { version = "1.26.0", features = ["macros", "signal", "rt-multi-thread"] }
+thiserror = "2.0.9"
+tokio = { version = "1.42.0", features = ["macros", "signal", "rt-multi-thread"] }

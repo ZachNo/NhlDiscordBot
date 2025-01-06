@@ -1,4 +1,5 @@
 use anyhow::Error as AnyhowError;
+use chrono::Local;
 use thiserror::Error;
 
 pub const NON_USER_ERROR_OUTPUT: &str = "Unexpected error occured, the issue has been reported.";
@@ -16,7 +17,7 @@ pub enum DiscordError {
 }
 
 pub fn error_to_error_message(err: AnyhowError) -> String {
-    println!("{err:#}");
+    println!("{}{err:#}", Local::now().format("%Y-%m-%dT%H:%M:%S"));
     if let Some(e) = err.downcast_ref::<DiscordError>() {
         format!("{e}")
     } else {
