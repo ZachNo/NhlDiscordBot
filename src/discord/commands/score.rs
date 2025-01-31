@@ -86,9 +86,7 @@ async fn populate_matches() -> Result<Vec<(String, u64)>> {
 
     let mut matches = Vec::new();
     for game in &schedule.games {
-        let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
-        let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
-        let title = format!("{} vs. {}", home_team_name, away_team_name);
+        let title = format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name());
         matches.push((title, game.id));
     }
     Ok(matches)
@@ -96,11 +94,9 @@ async fn populate_matches() -> Result<Vec<(String, u64)>> {
 
 async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
     let game = fetch_match_score(match_id).await?;
-    let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
-    let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
     let mut embed: CreateEmbed = CreateEmbed::default()
         .color(Colour::from_rgb(240, 200, 0))
-        .title(format!("{} vs. {}", home_team_name, away_team_name))
+        .title(format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()))
         .field(
             "Status",
             translate_match_status(&game.game_state),

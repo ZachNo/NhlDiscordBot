@@ -14,6 +14,25 @@ pub struct Game {
     pub away_team: Team,
     pub home_team: Team,
     pub clock: Option<Clock>,
+    pub special_event: Option<TranslationString>,
+}
+
+impl Game {
+    pub fn get_away_team_full_name(&self) -> String {
+        if self.away_team.common_name.default.starts_with(self.away_team.place_name.default.as_str()) {
+            self.away_team.common_name.default.clone()
+        } else {
+            format!("{} {}", self.away_team.place_name.default, self.away_team.common_name.default)
+        }
+    }
+
+    pub fn get_home_team_full_name(&self) -> String {
+        if self.home_team.common_name.default.starts_with(self.home_team.place_name.default.as_str()) {
+            self.home_team.common_name.default.clone()
+        } else {
+            format!("{} {}", self.home_team.place_name.default, self.home_team.common_name.default)
+        }
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize)]

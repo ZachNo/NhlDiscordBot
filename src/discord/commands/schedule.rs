@@ -71,10 +71,8 @@ async fn format_schedule(schedule: Day) -> Result<CreateEmbed> {
 
     for game in &schedule.games {
         let datetime = DateTime::parse_from_rfc3339(game.start_time_u_t_c.as_str())?;
-        let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
-        let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
         embed = embed.field(
-            format!("{} vs. {}", home_team_name, away_team_name),
+            format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()),
             format!(
                 "At {} @ <t:{}:t>\n{}{}",
                 game.venue.default,

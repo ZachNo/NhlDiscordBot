@@ -42,10 +42,8 @@ async fn format_summary(schedule: Day) -> Result<CreateEmbed> {
         .color(Colour::from_rgb(240, 200, 0))
         .title(format!("NHL Games Summary for {}", &schedule.date));
     for game in &schedule.games {
-        let away_team_name = format!("{} {}", game.away_team.place_name.default, game.away_team.common_name.default);
-        let home_team_name = format!("{} {}", game.home_team.place_name.default, game.home_team.common_name.default);
         embed = embed.field(
-            format!("{} vs. {}", home_team_name, away_team_name),
+            format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()),
             format!(
                 "Final score: {}-{}",
                 game.home_team.score.unwrap_or(0),
