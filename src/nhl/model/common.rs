@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct TranslationString {
+    #[serde(default)]
     pub default: String,
 }
 
