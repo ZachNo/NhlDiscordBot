@@ -81,7 +81,7 @@ async fn format_schedule(schedule: Day) -> Result<CreateEmbed> {
                 if game.special_event.is_some() {
                     format!(
                         "\nSpecial Event: {}",
-                        game.special_event.clone().unwrap().default
+                        game.special_event.clone().unwrap().name.default
                     )
                 } else {
                     "".to_string()

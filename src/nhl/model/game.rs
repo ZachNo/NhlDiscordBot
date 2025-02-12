@@ -14,7 +14,13 @@ pub struct Game {
     pub away_team: Team,
     pub home_team: Team,
     pub clock: Option<Clock>,
-    pub special_event: Option<TranslationString>,
+    pub special_event: Option<SpecialEvent>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpecialEvent {
+    pub name: TranslationString,
 }
 
 impl Game {
