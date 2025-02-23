@@ -44,6 +44,7 @@ impl Game {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Period {
+    #[serde(default)]
     pub number: u8,
 }
 

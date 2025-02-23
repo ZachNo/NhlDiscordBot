@@ -8,6 +8,7 @@ anyhow = "1.0.95"
 cached = { version = "0.54.0", features = ["redis_async_std"] }
 chrono = "0.4.39"
 config-file = "0.2.3"
+influxdb = { version = "0.7.2", optional = true }
 reqwest = "0.12.12"
 serde = "1.0.217"
 serde_json = "1.0.134"
@@ -15,3 +16,7 @@ serenity = "0.12.4"
 strum = { version = "0.26.3", features = ["derive"] }
 thiserror = "2.0.9"
 tokio = { version = "1.42.0", features = ["macros", "signal", "rt-multi-thread"] }
+
+[features]
+default = ["influxdbstats"]
+influxdbstats = ["dep:influxdb"]

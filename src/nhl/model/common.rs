@@ -9,7 +9,7 @@ pub struct TranslationString {
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Team {
-    pub id: u32,
+    pub id: i32,
     pub common_name: TranslationString,
     pub place_name: TranslationString,
     pub score: Option<u8>,
