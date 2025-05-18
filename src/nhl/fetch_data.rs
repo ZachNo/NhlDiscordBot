@@ -24,7 +24,7 @@ pub async fn fetch_tomorrow_schedule() -> Result<Day> {
             .format("%Y-%m-%d")
             .to_string(),
     )
-    .await
+        .await
 }
 
 pub async fn fetch_yesterday_schedule() -> Result<Day> {
@@ -34,16 +34,15 @@ pub async fn fetch_yesterday_schedule() -> Result<Day> {
             .format("%Y-%m-%d")
             .to_string(),
     )
-    .await
+        .await
 }
 
 #[io_cached(
-    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
-    ty = "AsyncRedisCache<String, Day>",
-    create = r##" {
+map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
+ty = "AsyncRedisCache<String, Day>",
+create = r##" {
         AsyncRedisCacheBuilder::new("schedule", 3600)
             .set_connection_string(REDIS)
-            .set_refresh(true)
             .build()
             .await
             .expect("error building redis cache")
@@ -56,14 +55,14 @@ async fn fetch_schedule(day: String) -> Result<Day> {
         .text()
         .await
         .map_err(|e| NhlServerError(e.to_string()))?;
-    let schedule = parse_schedule_data(data.as_str()).with_context(|| format!("{day}"))?;
+    let schedule = parse_schedule_data(data.as_str()).with_context(|| format!("{day}")).context(format!("day: {day}"))?;
     Ok(schedule.game_week[0].clone())
 }
 
 #[io_cached(
-    map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
-    ty = "AsyncRedisCache<u64, Game>",
-    create = r##" {
+map_error = r##"|e| anyhow!("redis: {:?}", e)"##,
+ty = "AsyncRedisCache<u64, Game>",
+create = r##" {
         AsyncRedisCacheBuilder::new("match", 5)
             .set_connection_string(REDIS)
             .build()
@@ -78,5 +77,5 @@ pub async fn fetch_match_score(match_id: u64) -> Result<Game> {
         .text()
         .await
         .map_err(|e| NhlServerError(e.to_string()))?;
-    parse_game_data(body.as_str())
+    parse_game_data(body.as_str()).context(format!("match id: {match_id}"))
 }

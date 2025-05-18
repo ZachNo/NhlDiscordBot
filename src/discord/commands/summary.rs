@@ -1,6 +1,7 @@
 use anyhow::Result;
 use serenity::all::{
     async_trait, Colour, CommandInteraction, CreateActionRow, CreateCommand, CreateEmbed,
+    InstallationContext, InteractionContext,
 };
 
 use crate::discord::commands::DiscordCommandTrait;
@@ -15,7 +16,13 @@ pub struct Summary {}
 #[async_trait]
 impl DiscordCommandTrait for Summary {
     fn create_command(&self) -> CreateCommand {
-        CreateCommand::new(NAME).description(DESCRIPTION)
+        CreateCommand::new(NAME)
+            .description(DESCRIPTION)
+            .add_integration_type(InstallationContext::Guild)
+            .add_integration_type(InstallationContext::User)
+            .add_context(InteractionContext::Guild)
+            .add_context(InteractionContext::BotDm)
+            .add_context(InteractionContext::PrivateChannel)
     }
 
     async fn handle_command(
@@ -43,7 +50,11 @@ async fn format_summary(schedule: Day) -> Result<CreateEmbed> {
         .title(format!("NHL Games Summary for {}", &schedule.date));
     for game in &schedule.games {
         embed = embed.field(
-            format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()),
+            format!(
+                "{} vs. {}",
+                game.get_home_team_full_name(),
+                game.get_away_team_full_name()
+            ),
             format!(
                 "Final score: {}-{}",
                 game.home_team.score.unwrap_or(0),

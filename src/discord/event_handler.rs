@@ -39,7 +39,7 @@ impl EventHandler for Handler {
                             .and_then(|a| Some(a.data.name.clone()))
                             .unwrap(),
                     )
-                    .await;
+                        .await;
                 }
                 autocomplete_interaction(&ctx, autocomplete, self.config.error_channel).await;
             }
@@ -51,7 +51,7 @@ impl EventHandler for Handler {
                         "command".to_string(),
                         command.and_then(|c| Some(c.data.name.clone())).unwrap(),
                     )
-                    .await;
+                        .await;
                 }
                 application_command_interaction(&ctx, command, self.config.error_channel).await;
             }
@@ -65,7 +65,7 @@ impl EventHandler for Handler {
                             .and_then(|c| Some(c.data.custom_id.clone()))
                             .unwrap(),
                     )
-                    .await;
+                        .await;
                 }
                 message_component_interaction(&ctx, message_component, self.config.error_channel)
                     .await;

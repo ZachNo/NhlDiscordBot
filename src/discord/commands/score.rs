@@ -3,7 +3,8 @@ use chrono::Utc;
 use serenity::all::{
     async_trait, ButtonStyle::Secondary, Colour, CommandData, CommandInteraction,
     CommandOptionType, ComponentInteraction, CreateActionRow, CreateAutocompleteResponse,
-    CreateButton, CreateCommand, CreateCommandOption, CreateEmbed,
+    CreateButton, CreateCommand, CreateCommandOption, CreateEmbed, InstallationContext,
+    InteractionContext,
 };
 
 use crate::discord::commands::common::DiscordCommandTrait;
@@ -30,6 +31,11 @@ impl DiscordCommandTrait for Score {
                 .required(true)
                 .set_autocomplete(true),
             )
+            .add_integration_type(InstallationContext::Guild)
+            .add_integration_type(InstallationContext::User)
+            .add_context(InteractionContext::Guild)
+            .add_context(InteractionContext::BotDm)
+            .add_context(InteractionContext::PrivateChannel)
     }
 
     async fn handle_command(
@@ -86,7 +92,11 @@ async fn populate_matches() -> Result<Vec<(String, u64)>> {
 
     let mut matches = Vec::new();
     for game in &schedule.games {
-        let title = format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name());
+        let title = format!(
+            "{} vs. {}",
+            game.get_home_team_full_name(),
+            game.get_away_team_full_name()
+        );
         matches.push((title, game.id));
     }
     Ok(matches)
@@ -96,12 +106,12 @@ async fn pull_match_score(match_id: u64) -> Result<CreateEmbed> {
     let game = fetch_match_score(match_id).await?;
     let mut embed: CreateEmbed = CreateEmbed::default()
         .color(Colour::from_rgb(240, 200, 0))
-        .title(format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()))
-        .field(
-            "Status",
-            translate_match_status(&game.game_state),
-            false,
-        )
+        .title(format!(
+            "{} vs. {}",
+            game.get_home_team_full_name(),
+            game.get_away_team_full_name()
+        ))
+        .field("Status", translate_match_status(&game.game_state), false)
         .field(
             "Score",
             format!(

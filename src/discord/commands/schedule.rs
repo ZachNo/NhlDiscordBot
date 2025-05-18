@@ -2,7 +2,7 @@ use anyhow::Result;
 use chrono::DateTime;
 use serenity::all::{
     async_trait, Colour, CommandInteraction, CommandOptionType, CreateActionRow, CreateCommand,
-    CreateCommandOption, CreateEmbed,
+    CreateCommandOption, CreateEmbed, InstallationContext, InteractionContext,
 };
 
 use crate::discord::commands::DiscordCommandTrait;
@@ -26,9 +26,14 @@ impl DiscordCommandTrait for Schedule {
                     "day",
                     "Which schedule to display?",
                 )
-                .add_string_choice("today", "today")
-                .add_string_choice("tomorrow", "tomorrow"),
+                    .add_string_choice("today", "today")
+                    .add_string_choice("tomorrow", "tomorrow"),
             )
+            .add_integration_type(InstallationContext::Guild)
+            .add_integration_type(InstallationContext::User)
+            .add_context(InteractionContext::Guild)
+            .add_context(InteractionContext::BotDm)
+            .add_context(InteractionContext::PrivateChannel)
     }
 
     async fn handle_command(
@@ -72,7 +77,11 @@ async fn format_schedule(schedule: Day) -> Result<CreateEmbed> {
     for game in &schedule.games {
         let datetime = DateTime::parse_from_rfc3339(game.start_time_u_t_c.as_str())?;
         embed = embed.field(
-            format!("{} vs. {}", game.get_home_team_full_name(), game.get_away_team_full_name()),
+            format!(
+                "{} vs. {}",
+                game.get_home_team_full_name(),
+                game.get_away_team_full_name()
+            ),
             format!(
                 "At {} @ <t:{}:t>\n{}{}",
                 game.venue.default,

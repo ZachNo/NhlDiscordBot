@@ -28,7 +28,7 @@ pub async fn application_command_interaction(
                                         ctx,
                                         err_chan,
                                     )
-                                    .await,
+                                        .await,
                                 ),
                         ),
                     )
@@ -37,7 +37,7 @@ pub async fn application_command_interaction(
                 return;
             }
         }
-        .into_command();
+            .into_command();
         let (embed, components) = match discord_command.handle_command(command).await {
             Ok((e, c)) => (e, c),
             Err(e) => {
@@ -91,7 +91,7 @@ pub async fn autocomplete_interaction(
                                         ctx,
                                         err_chan,
                                     )
-                                    .await,
+                                        .await,
                                 ),
                         ),
                     )
@@ -100,7 +100,7 @@ pub async fn autocomplete_interaction(
                 return;
             }
         }
-        .into_command();
+            .into_command();
         let response_options = match discord_command.handle_autocomplete(autocomplete).await {
             Ok(r) => r,
             Err(e) => {
@@ -141,7 +141,7 @@ pub async fn message_component_interaction(
                                         ctx,
                                         err_chan,
                                     )
-                                    .await,
+                                        .await,
                                 ),
                         ),
                     )
@@ -150,7 +150,7 @@ pub async fn message_component_interaction(
                 return;
             }
         }
-        .into_command();
+            .into_command();
         let (embed, components) = match discord_command.handle_interaction(message).await {
             Ok((e, c)) => (e, c),
             Err(e) => {
